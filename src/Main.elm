@@ -1,7 +1,8 @@
 module Main exposing (main)
 
 import Browser
-import Html exposing (Html, button, div, text)
+import Html exposing (Html, button, div, h1, text)
+import Html.Attributes exposing (style)
 import Html.Events exposing (onClick)
 
 
@@ -13,39 +14,121 @@ main =
         }
 
 
-type alias Model =
-    Int
+limit : Int
+limit =
+    10
+
+
+type Status
+    = BelowLimit Int
+    | OverLimit Int
+    | Critical Int
+
+
+type Model
+    = Idle
+    | EnginesRunning Status
+    | Explosion
 
 
 init : Model
 init =
-    1
+    Idle
 
 
 type Msg
     = Increment
     | Decrement
-    | Reset
+    | Shutdown
+
+
+calcEngineStatus : Int -> Status
+calcEngineStatus n =
+    if n < limit then
+        BelowLimit <| max 1 n
+
+    else if n < limit + limit // 2 then
+        OverLimit n
+
+    else
+        Critical n
+
+
+getCount : Status -> Int
+getCount status =
+    case status of
+        BelowLimit n ->
+            n
+
+        OverLimit n ->
+            n
+
+        Critical n ->
+            n
 
 
 update : Msg -> Model -> Model
 update msg model =
-    case msg of
-        Increment ->
-            model + 1
+    case ( model, msg ) of
+        ( Explosion, _ ) ->
+            Explosion
 
-        Decrement ->
-            model - 3
+        ( Idle, Increment ) ->
+            EnginesRunning <| calcEngineStatus 1
 
-        Reset ->
-            0
+        ( Idle, _ ) ->
+            Idle
+
+        ( _, Shutdown ) ->
+            Idle
+
+        ( EnginesRunning (Critical _), Increment ) ->
+            Explosion
+
+        ( EnginesRunning status, Increment ) ->
+            getCount status
+                |> (+) 1
+                |> calcEngineStatus
+                |> EnginesRunning
+
+        ( EnginesRunning status, Decrement ) ->
+            getCount status
+                |> (-) 1
+                |> calcEngineStatus
+                |> EnginesRunning
 
 
 view : Model -> Html Msg
 view model =
-    div []
+    case model of
+        Idle ->
+            button [ onClick Increment ] [ text "Start" ]
+
+        EnginesRunning status ->
+            viewControl status
+
+        Explosion ->
+            h1 [ style "background-color" "red" ] [ text "E x p l o s i o n" ]
+
+
+viewControl : Status -> Html Msg
+viewControl status =
+    let
+        ( backgroundColor, statusText, count ) =
+            case status of
+                BelowLimit n ->
+                    ( "lightgrey", "Engines running below limit.", n )
+
+                OverLimit n ->
+                    ( "grey", "Engines running over limit.", n )
+
+                Critical n ->
+                    ( "orange", "CRITICAL!", n )
+    in
+    div [ style "background-color" backgroundColor ]
         [ button [ onClick Decrement ] [ text "-1" ]
-        , div [] [ text <| String.fromInt model ]
+        , div [] [ text <| String.fromInt count ]
         , button [ onClick Increment ] [ text "+1" ]
-        , button [ onClick Reset ] [ text "reset" ]
+        , button [ onClick Shutdown ] [ text "shutdown" ]
+        , div [] [ text statusText ]
         ]
