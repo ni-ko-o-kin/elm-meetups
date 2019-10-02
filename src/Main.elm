@@ -19,12 +19,13 @@ type alias Model =
 
 init : Model
 init =
-    0
+    1
 
 
 type Msg
     = Increment
     | Decrement
+    | Reset
 
 
 update : Msg -> Model -> Model
@@ -34,7 +35,10 @@ update msg model =
             model + 1
 
         Decrement ->
-            model - 1
+            model - 3
+
+        Reset ->
+            0
 
 
 view : Model -> Html Msg
@@ -43,4 +47,5 @@ view model =
         [ button [ onClick Decrement ] [ text "-1" ]
         , div [] [ text <| String.fromInt model ]
         , button [ onClick Increment ] [ text "+1" ]
+        , button [ onClick Reset ] [ text "reset" ]
         ]
