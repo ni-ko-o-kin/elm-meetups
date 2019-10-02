@@ -114,20 +114,20 @@ view model =
 viewControl : Status -> Html Msg
 viewControl status =
     let
-        ( backgroundColor, statusText, count ) =
+        ( backgroundColor, statusText ) =
             case status of
-                BelowLimit n ->
-                    ( "lightgrey", "Engines running below limit.", n )
+                BelowLimit _ ->
+                    ( "lightgrey", "Engines running below limit." )
 
-                OverLimit n ->
-                    ( "grey", "Engines running over limit.", n )
+                OverLimit _ ->
+                    ( "grey", "Engines running over limit." )
 
-                Critical n ->
-                    ( "orange", "CRITICAL!", n )
+                Critical _ ->
+                    ( "orange", "CRITICAL!" )
     in
     div [ style "background-color" backgroundColor ]
         [ button [ onClick Decrement ] [ text "-1" ]
-        , div [] [ text <| String.fromInt count ]
+        , div [] [ text <| String.fromInt <| getCount status ]
         , button [ onClick Increment ] [ text "+1" ]
         , button [ onClick Shutdown ] [ text "shutdown" ]
         , div [] [ text statusText ]
