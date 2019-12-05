@@ -1,4 +1,11 @@
+Links:
 - meetup: https://www.meetup.com/Vienna-Elm-Meetup/
 - github: https://github.com/ni-ko-o-kin/elm-meetups
 - slack: https://elmvienna.slack.com
 - location: https://github.com/parasew/riat-events
+
+Todo for every meetup:
+- add event on meetup.com
+- add event and make PR at https://github.com/parasew/riat-events
+- print "Elm Meetup - bei Tür 4 klingeln; 1. Stock, rechts, letzte Tür. See ./print.pdf
+- pring hardware for live programming: raspberry pi/laptop, mouse, keyboard, wlan cable, hdmi-micro adapter, wlan-stick
