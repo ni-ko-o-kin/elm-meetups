@@ -1,12 +1,16 @@
-DONE graphql
+DONE
+====
+graphql
+pair programming/mob programming
 
+TODO
+====
 review code
 coding night
 elm-ui
 task ports
 explaining signatures elm-package - write documentation
 elm dev environment
-pair programming/mob programming
 q/a sessions
 experiences with scaling
 best practices
