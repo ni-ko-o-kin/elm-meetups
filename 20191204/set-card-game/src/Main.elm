@@ -90,7 +90,8 @@ deck =
     --             colors
     --     )
     --     symbols
-    List.map Card symbols
+    [ Card ]
+        |> List.concatMap (\card -> List.map card symbols)
         |> List.concatMap (\card -> List.map card colors)
         |> List.concatMap (\card -> List.map card numbers)
         |> List.concatMap (\card -> List.map card shadings)
