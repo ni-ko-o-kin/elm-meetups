@@ -42,7 +42,7 @@ type Shading
     | Empty
 
 
-shading =
+shadings =
     [ Solid, Striped, Empty ]
 
 
@@ -71,24 +71,29 @@ type Card
     = Card Symbol Color Number Shading
 
 
+deck : List Card
 deck =
-    List.concatMap
-        (\sym ->
-            List.concatMap
-                (\col ->
-                    List.concatMap
-                        (\shad ->
-                            List.map
-                                (\num ->
-                                    Card sym col num shad
-                                )
-                                numbers
-                        )
-                        shading
-                )
-                colors
-        )
-        symbols
+    -- List.concatMap
+    --     (\sym ->
+    --         List.concatMap
+    --             (\col ->
+    --                 List.concatMap
+    --                     (\shad ->
+    --                         List.map
+    --                             (\num ->
+    --                                 Card sym col num shad
+    --                             )
+    --                             numbers
+    --                     )
+    --                     shadings
+    --             )
+    --             colors
+    --     )
+    --     symbols
+    List.map Card symbols
+        |> List.concatMap (\card -> List.map card colors)
+        |> List.concatMap (\card -> List.map card numbers)
+        |> List.concatMap (\card -> List.map card shadings)
 
 
 
