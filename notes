@@ -4,8 +4,11 @@ Links:
 - slack: https://elmvienna.slack.com
 - location: https://github.com/parasew/riat-events
 
-Todo for every meetup:
+Todo before next meetup:
 - add event on meetup.com
 - add event and make PR at https://github.com/parasew/riat-events
+- announce on twitter with #elmlang #vienna #meetup
+
+Required hardware for meetup:
+- bring hardware for live programming: raspberry pi/laptop, mouse, keyboard, wlan cable, hdmi-micro adapter, wlan-stick
 - print "Elm Meetup - bei Tür 4 klingeln; 1. Stock, rechts, letzte Tür. See ./print.pdf
-- pring hardware for live programming: raspberry pi/laptop, mouse, keyboard, wlan cable, hdmi-micro adapter, wlan-stick
