@@ -5,7 +5,7 @@ import Cat exposing (Cat(..))
 import Common exposing (Animal)
 import Dog exposing (Dog(..))
 import Html exposing (Html, div, text)
-import Snake exposing (Snake(..))
+import Snake exposing (UnvalidatedSnake(..), ValidatedSnake(..))
 import Validate exposing (validate)
 
 
@@ -18,7 +18,7 @@ view _ =
         Just ( _, _, UnvalidatedDog _ ) ->
             text "nothing"
 
-        Just ( Cat catData, Snake.Snake snakeData, ValidatedDog dogData ) ->
+        Just ( Cat catData, ValidatedSnake snakeData, ValidatedDog dogData ) ->
             text <| String.join " - " [ catData.name, snakeData.name, dogData.name ]
 
 

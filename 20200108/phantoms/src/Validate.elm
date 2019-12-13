@@ -3,14 +3,14 @@ module Validate exposing (validate)
 import Cat exposing (Cat(..))
 import Common exposing (Unvalidated, Validated)
 import Dog exposing (Dog(..))
-import Snake exposing (Snake(..))
+import Snake exposing (UnvalidatedSnake(..), ValidatedSnake(..))
 
 
 validate :
     Cat Unvalidated
-    -> Snake Unvalidated
+    -> UnvalidatedSnake
     -> Dog
-    -> Maybe ( Cat Validated, Snake Validated, Dog )
+    -> Maybe ( Cat Validated, ValidatedSnake, Dog )
 validate unvalidatedCat unvalidatedSnake dontKnowDog =
     Cat.validate unvalidatedCat
         |> Maybe.andThen
@@ -20,7 +20,7 @@ validate unvalidatedCat unvalidatedSnake dontKnowDog =
                         Nothing
 
                     Just snake ->
-                        Just ( Cat.addSecret cat, snake )
+                        Just ( cat, snake )
             )
         |> Maybe.andThen
             (\( cat, snake ) ->

@@ -1,33 +1,37 @@
-module Snake exposing (Snake(..), snake, validate, view)
+module Snake exposing (UnvalidatedSnake(..), ValidatedSnake(..), snake, validate, view)
 
 import Common exposing (Animal, Unvalidated, Validated)
 import Html exposing (Html, div, text)
 
 
-type Snake a
-    = Snake Animal
+type ValidatedSnake
+    = ValidatedSnake Animal
 
 
-validate : Snake Unvalidated -> Maybe (Snake Validated)
-validate (Snake snakeData) =
+type UnvalidatedSnake
+    = UnvalidatedSnake Animal
+
+
+validate : UnvalidatedSnake -> Maybe ValidatedSnake
+validate (UnvalidatedSnake snakeData) =
     case snakeData.age > 20 of
         True ->
-            Just (Snake snakeData)
+            Just (ValidatedSnake snakeData)
 
         False ->
             Nothing
 
 
-snake : Snake Unvalidated
+snake : UnvalidatedSnake
 snake =
-    Snake { name = "Sss", age = 100 }
+    UnvalidatedSnake { name = "Sss", age = 100 }
 
 
-addSecret : Snake Validated -> Snake Validated
+addSecret : ValidatedSnake -> ValidatedSnake
 addSecret =
     identity
 
 
-view : Snake Validated -> Html msg
-view (Snake { name }) =
+view : ValidatedSnake -> Html msg
+view (ValidatedSnake { name }) =
     text name
