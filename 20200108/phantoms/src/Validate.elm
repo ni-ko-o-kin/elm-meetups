@@ -4,6 +4,7 @@ import Cat exposing (Cat(..))
 import Common exposing (Unvalidated, Validated)
 import Dog exposing (Dog(..))
 import Snake exposing (UnvalidatedSnake(..), ValidatedSnake(..))
+import Utils exposing (apply, triple)
 
 
 validate :
@@ -12,22 +13,7 @@ validate :
     -> Dog
     -> Maybe ( Cat Validated, ValidatedSnake, Dog )
 validate unvalidatedCat unvalidatedSnake dontKnowDog =
-    Cat.validate unvalidatedCat
-        |> Maybe.andThen
-            (\cat ->
-                case Snake.validate unvalidatedSnake of
-                    Nothing ->
-                        Nothing
-
-                    Just snake ->
-                        Just ( cat, snake )
-            )
-        |> Maybe.andThen
-            (\( cat, snake ) ->
-                case Dog.validate dontKnowDog of
-                    Nothing ->
-                        Nothing
-
-                    Just dog ->
-                        Just ( cat, snake, dog )
-            )
+    Just triple
+        |> apply (Cat.validate unvalidatedCat)
+        |> apply (Snake.validate unvalidatedSnake)
+        |> apply (Dog.validate dontKnowDog)

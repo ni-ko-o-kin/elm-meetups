@@ -18,8 +18,12 @@ view _ =
         Just ( _, _, UnvalidatedDog _ ) ->
             text "nothing"
 
-        Just ( Cat catData, ValidatedSnake snakeData, ValidatedDog dogData ) ->
-            text <| String.join " - " [ catData.name, snakeData.name, dogData.name ]
+        Just ( cat, snake, dog ) ->
+            div []
+                [ div [] [ Cat.view cat ]
+                , div [] [ Snake.view snake ]
+                , div [] [ Dog.view dog ]
+                ]
 
 
 main : Program () () msg
