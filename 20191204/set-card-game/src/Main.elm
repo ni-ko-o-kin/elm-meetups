@@ -73,28 +73,7 @@ type Card
 
 deck : List Card
 deck =
-    -- List.concatMap
-    --     (\sym ->
-    --         List.concatMap
-    --             (\col ->
-    --                 List.concatMap
-    --                     (\shad ->
-    --                         List.map
-    --                             (\num ->
-    --                                 Card sym col num shad
-    --                             )
-    --                             numbers
-    --                     )
-    --                     shadings
-    --             )
-    --             colors
-    --     )
-    --     symbols
-    [ Card ]
-        |> List.concatMap (\card -> List.map card symbols)
-        |> List.concatMap (\card -> List.map card colors)
-        |> List.concatMap (\card -> List.map card numbers)
-        |> List.concatMap (\card -> List.map card shadings)
+    List.Extra.lift4 Card symbols colors numbers shadings
 
 
 
