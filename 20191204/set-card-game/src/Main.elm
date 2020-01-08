@@ -7,6 +7,7 @@ import Html exposing (Html)
 import List.Extra exposing (cartesianProduct)
 import Random exposing (generate)
 import Random.List exposing (shuffle)
+import Set
 
 
 
@@ -68,19 +69,55 @@ numbers =
 
 
 type Card
-    = Card Symbol Color Number Shading
+    = Card CardData
+
+
+type alias CardData =
+    { symbol : Symbol
+    , color : Color
+    , number : Number
+    , shading : Shading
+    }
+
+
+initCard : Symbol -> Color -> Number -> Shading -> Card
+initCard symbol color number shading =
+    Card
+        { symbol = symbol
+        , color = color
+        , number = number
+        , shading = shading
+        }
 
 
 deck : List Card
 deck =
-    List.Extra.lift4 Card symbols colors numbers shadings
+    List.Extra.lift4 initCard symbols colors numbers shadings
+
+
+type alias Set =
+    List Card
 
 
 
--- type alias Set =
---     List Card
--- createSet : Card -> Card -> Card -> Set
--- createSet c1 c2 c3 =
+--isSet : Card -> Card -> Card -> Bool
+--isSet c1 c2 c3 =
+--allSame : (Card -> a) -> Card -> Card -> Card -> Bool
+
+
+allSame : (CardData -> b) -> Card -> Card -> Card -> Bool
+allSame getter (Card c1) (Card c2) (Card c3) =
+    getter c1 == getter c2 && getter c1 == getter c3
+
+
+symbolsAllSame : Card -> Card -> Card -> Bool
+symbolsAllSame =
+    allSame .symbol
+
+
+symbolsAllDiff : Card -> Card -> Card -> Bool
+symbolsAllDiff (Card c1) (Card c2) (Card c3) =
+    c1.symbol /= c2.symbol && c1.symbol /= c3.symbol && c2.symbol /= c3.symbol
 
 
 type Msg
