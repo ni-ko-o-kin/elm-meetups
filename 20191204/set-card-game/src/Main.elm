@@ -1,13 +1,12 @@
-module Main exposing (main)
+module Main exposing (..)
 
 import Browser
-import Element exposing (Element, centerX, centerY, el, fill, height, padding, rgb255, text, width)
+import Element exposing (Element, centerX, centerY, column, el, fill, height, padding, rgb255, text, width)
 import Element.Border as Border
 import Html exposing (Html)
 import List.Extra exposing (cartesianProduct)
 import Random exposing (generate)
 import Random.List exposing (shuffle)
-import Set
 
 
 
@@ -95,14 +94,8 @@ deck =
     List.Extra.lift4 initCard symbols colors numbers shadings
 
 
-type alias Set =
-    List Card
-
-
-
---isSet : Card -> Card -> Card -> Bool
---isSet c1 c2 c3 =
---allSame : (Card -> a) -> Card -> Card -> Card -> Bool
+type Set
+    = Set Card Card Card
 
 
 allSame : (CardData -> b) -> Card -> Card -> Card -> Bool
@@ -120,8 +113,8 @@ isFeatureSet getter a b c =
     allSame getter a b c || allDiff getter a b c
 
 
-isSet : Card -> Card -> Card -> Bool
-isSet a b c =
+isValidSet : Set -> Bool
+isValidSet (Set a b c) =
     List.all
         identity
         [ isFeatureSet .symbol a b c
@@ -161,7 +154,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         DeckShuffled deckShuffled ->
-            ( Debug.log "" <| Playing { remainingDeck = deckShuffled, deal = [] }, Cmd.none )
+            ( Playing { remainingDeck = deckShuffled, deal = [] }, Cmd.none )
 
 
 view : Model -> Html Msg
@@ -177,5 +170,76 @@ view model =
             , Border.color <| rgb255 255 192 203
             , padding 10
             ]
-            (text "SET")
+            (viewCard (initCard Squiggle Red Two Striped))
         )
+
+
+viewCard : Card -> Element Msg
+viewCard (Card { symbol, color, number, shading }) =
+    column []
+        [ text (symbolToString symbol)
+        , text (colorToString color)
+        , text (numberToString number)
+        , text (shadingToString shading)
+        ]
+
+
+
+-- type alias CardData =
+--     { symbol : Symbol
+--     , color : Color
+--     , number : Number
+--     , shading : Shading
+--     }
+
+
+symbolToString : Symbol -> String
+symbolToString symbol =
+    case symbol of
+        Oval ->
+            "Oval"
+
+        Diamond ->
+            "Diamond"
+
+        Squiggle ->
+            "Squiggle"
+
+
+numberToString : Number -> String
+numberToString number =
+    case number of
+        One ->
+            "One"
+
+        Two ->
+            "Two"
+
+        Three ->
+            "Three"
+
+
+shadingToString : Shading -> String
+shadingToString shading =
+    case shading of
+        Solid ->
+            "Solid"
+
+        Striped ->
+            "Striped"
+
+        Empty ->
+            "Empty"
+
+
+colorToString : Color -> String
+colorToString color =
+    case color of
+        Red ->
+            "Red"
+
+        Green ->
+            "Green"
+
+        Purple ->
+            "Purple"
