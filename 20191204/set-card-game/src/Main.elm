@@ -154,11 +154,25 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         DeckShuffled deckShuffled ->
-            ( Playing { remainingDeck = deckShuffled, deal = [] }, Cmd.none )
+            ( Playing
+                { remainingDeck = List.drop 12 deckShuffled
+                , deal = List.take 12 deckShuffled
+                }
+            , Cmd.none
+            )
 
 
 view : Model -> Html Msg
 view model =
+    let
+        content =
+            case model of
+                Preparing ->
+                    text "loading..."
+
+                Playing { deal } ->
+                    viewCards deal
+    in
     Element.layout
         [ width fill, height fill ]
         (el
@@ -170,13 +184,17 @@ view model =
             , Border.color <| rgb255 255 192 203
             , padding 10
             ]
-            (viewCard (initCard Squiggle Red Two Striped))
+            content
         )
 
 
 viewCard : Card -> Element Msg
 viewCard (Card { symbol, color, number, shading }) =
-    column []
+    column
+        [ Border.width 3
+        , padding 10
+        , width (Element.fillPortion 1)
+        ]
         [ text (symbolToString symbol)
         , text (colorToString color)
         , text (numberToString number)
@@ -184,13 +202,18 @@ viewCard (Card { symbol, color, number, shading }) =
         ]
 
 
+viewCards : List Card -> Element Msg
+viewCards cards =
+    column []
+        (List.Extra.groupsOf 4 cards
+            |> List.map viewCardsRow
+        )
 
--- type alias CardData =
---     { symbol : Symbol
---     , color : Color
---     , number : Number
---     , shading : Shading
---     }
+
+viewCardsRow : List Card -> Element Msg
+viewCardsRow cards =
+    Element.row [ width fill ]
+        (List.map viewCard cards)
 
 
 symbolToString : Symbol -> String
