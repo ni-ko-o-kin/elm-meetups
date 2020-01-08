@@ -110,14 +110,30 @@ allSame getter (Card c1) (Card c2) (Card c3) =
     getter c1 == getter c2 && getter c1 == getter c3
 
 
+allDiff : (CardData -> b) -> Card -> Card -> Card -> Bool
+allDiff getter (Card c1) (Card c2) (Card c3) =
+    getter c1 /= getter c2 && getter c1 /= getter c3 && getter c2 /= getter c3
+
+
+isFeatureSet : (CardData -> b) -> Card -> Card -> Card -> Bool
+isFeatureSet getter a b c =
+    allSame getter a b c || allDiff getter a b c
+
+
+isSet : Card -> Card -> Card -> Bool
+isSet a b c =
+    List.all
+        identity
+        [ isFeatureSet .symbol a b c
+        , isFeatureSet .number a b c
+        , isFeatureSet .color a b c
+        , isFeatureSet .shading a b c
+        ]
+
+
 symbolsAllSame : Card -> Card -> Card -> Bool
 symbolsAllSame =
     allSame .symbol
-
-
-symbolsAllDiff : Card -> Card -> Card -> Bool
-symbolsAllDiff (Card c1) (Card c2) (Card c3) =
-    c1.symbol /= c2.symbol && c1.symbol /= c3.symbol && c2.symbol /= c3.symbol
 
 
 type Msg
