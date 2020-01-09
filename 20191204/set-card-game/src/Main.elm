@@ -1,7 +1,7 @@
-module Main exposing (main)
+module Main exposing (..)
 
 import Browser
-import Element exposing (Element, centerX, centerY, el, fill, height, padding, rgb255, text, width)
+import Element exposing (Element, centerX, centerY, column, el, fill, height, padding, rgb255, text, width)
 import Element.Border as Border
 import Html exposing (Html)
 import List.Extra exposing (cartesianProduct)
@@ -68,40 +68,65 @@ numbers =
 
 
 type Card
-    = Card Symbol Color Number Shading
+    = Card CardData
+
+
+type alias CardData =
+    { symbol : Symbol
+    , color : Color
+    , number : Number
+    , shading : Shading
+    }
+
+
+initCard : Symbol -> Color -> Number -> Shading -> Card
+initCard symbol color number shading =
+    Card
+        { symbol = symbol
+        , color = color
+        , number = number
+        , shading = shading
+        }
 
 
 deck : List Card
 deck =
-    -- List.concatMap
-    --     (\sym ->
-    --         List.concatMap
-    --             (\col ->
-    --                 List.concatMap
-    --                     (\shad ->
-    --                         List.map
-    --                             (\num ->
-    --                                 Card sym col num shad
-    --                             )
-    --                             numbers
-    --                     )
-    --                     shadings
-    --             )
-    --             colors
-    --     )
-    --     symbols
-    [ Card ]
-        |> List.concatMap (\card -> List.map card symbols)
-        |> List.concatMap (\card -> List.map card colors)
-        |> List.concatMap (\card -> List.map card numbers)
-        |> List.concatMap (\card -> List.map card shadings)
+    List.Extra.lift4 initCard symbols colors numbers shadings
 
 
+type Set
+    = Set Card Card Card
 
--- type alias Set =
---     List Card
--- createSet : Card -> Card -> Card -> Set
--- createSet c1 c2 c3 =
+
+allSame : (CardData -> b) -> Card -> Card -> Card -> Bool
+allSame getter (Card c1) (Card c2) (Card c3) =
+    getter c1 == getter c2 && getter c1 == getter c3
+
+
+allDiff : (CardData -> b) -> Card -> Card -> Card -> Bool
+allDiff getter (Card c1) (Card c2) (Card c3) =
+    getter c1 /= getter c2 && getter c1 /= getter c3 && getter c2 /= getter c3
+
+
+isFeatureSet : (CardData -> b) -> Card -> Card -> Card -> Bool
+isFeatureSet getter a b c =
+    allSame getter a b c || allDiff getter a b c
+
+
+isValidSet : Set -> Bool
+isValidSet (Set a b c) =
+    List.all
+        identity
+        [ isFeatureSet .symbol a b c
+        , isFeatureSet .number a b c
+        , isFeatureSet .color a b c
+        , isFeatureSet .shading a b c
+        ]
+
+
+symbolsAllSame : Card -> Card -> Card -> Bool
+symbolsAllSame =
+    allSame .symbol
 
 
 type Msg
@@ -129,11 +154,25 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         DeckShuffled deckShuffled ->
-            ( Debug.log "" <| Playing { remainingDeck = deckShuffled, deal = [] }, Cmd.none )
+            ( Playing
+                { remainingDeck = List.drop 12 deckShuffled
+                , deal = List.take 12 deckShuffled
+                }
+            , Cmd.none
+            )
 
 
 view : Model -> Html Msg
 view model =
+    let
+        content =
+            case model of
+                Preparing ->
+                    text "loading..."
+
+                Playing { deal } ->
+                    viewCards deal
+    in
     Element.layout
         [ width fill, height fill ]
         (el
@@ -145,5 +184,85 @@ view model =
             , Border.color <| rgb255 255 192 203
             , padding 10
             ]
-            (text "SET")
+            content
         )
+
+
+viewCard : Card -> Element Msg
+viewCard (Card { symbol, color, number, shading }) =
+    column
+        [ Border.width 3
+        , padding 10
+        , width (Element.fillPortion 1)
+        ]
+        [ text (symbolToString symbol)
+        , text (colorToString color)
+        , text (numberToString number)
+        , text (shadingToString shading)
+        ]
+
+
+viewCards : List Card -> Element Msg
+viewCards cards =
+    column []
+        (List.Extra.groupsOf 4 cards
+            |> List.map viewCardsRow
+        )
+
+
+viewCardsRow : List Card -> Element Msg
+viewCardsRow cards =
+    Element.row [ width fill ]
+        (List.map viewCard cards)
+
+
+symbolToString : Symbol -> String
+symbolToString symbol =
+    case symbol of
+        Oval ->
+            "Oval"
+
+        Diamond ->
+            "Diamond"
+
+        Squiggle ->
+            "Squiggle"
+
+
+numberToString : Number -> String
+numberToString number =
+    case number of
+        One ->
+            "One"
+
+        Two ->
+            "Two"
+
+        Three ->
+            "Three"
+
+
+shadingToString : Shading -> String
+shadingToString shading =
+    case shading of
+        Solid ->
+            "Solid"
+
+        Striped ->
+            "Striped"
+
+        Empty ->
+            "Empty"
+
+
+colorToString : Color -> String
+colorToString color =
+    case color of
+        Red ->
+            "Red"
+
+        Green ->
+            "Green"
+
+        Purple ->
+            "Purple"
