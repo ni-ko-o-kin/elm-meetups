@@ -14,3 +14,4 @@ Required hardware for meetup:
 - print "Elm Meetup Vienna - Person |> ringAtDoor4 |> gotoFirstFloor |> turnRight |> enterLastDoor. See ./print.pdf
 
 - checkbox test 2
+- checkbox test 3
