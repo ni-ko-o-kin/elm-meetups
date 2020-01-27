@@ -12,3 +12,5 @@ Todo before next meetup:
 Required hardware for meetup:
 - bring hardware for live programming: raspberry pi/laptop, mouse, keyboard, wlan cable, hdmi-micro adapter, wlan-stick
 - print "Elm Meetup Vienna - Person |> ringAtDoor4 |> gotoFirstFloor |> turnRight |> enterLastDoor. See ./print.pdf
+
+- checkbox test 2
