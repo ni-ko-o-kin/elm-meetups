@@ -1,12 +1,15 @@
 module Main exposing (..)
 
 import Browser
-import Element exposing (Element, centerX, centerY, column, el, fill, height, padding, rgb255, text, width)
+import Element exposing (Element, centerX, centerY, column, el, fill, height, padding, pointer, rgb255, text, width)
+import Element.Background as Background
 import Element.Border as Border
+import Element.Events as Events
 import Html exposing (Html)
 import List.Extra exposing (cartesianProduct)
 import Random exposing (generate)
 import Random.List exposing (shuffle)
+import Set
 
 
 
@@ -15,10 +18,22 @@ import Random.List exposing (shuffle)
 
 type Model
     = Preparing
-    | Playing
-        { remainingDeck : List Card
-        , deal : List Card
-        }
+    | Playing PlayingModel
+
+
+type Picked
+    = PickedNone
+    | PickedOne Card
+    | PickedTwo Card Card
+    | Valid Set
+    | Invalid Card Card Card
+
+
+type alias PlayingModel =
+    { remainingDeck : List Card
+    , deal : List Card
+    , picked : Picked
+    }
 
 
 
@@ -131,6 +146,7 @@ symbolsAllSame =
 
 type Msg
     = DeckShuffled (List Card)
+    | CardClicked Card
 
 
 main : Program () Model Msg
@@ -152,14 +168,94 @@ init =
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
-        DeckShuffled deckShuffled ->
+    case ( msg, model ) of
+        ( DeckShuffled deckShuffled, _ ) ->
             ( Playing
                 { remainingDeck = List.drop 12 deckShuffled
                 , deal = List.take 12 deckShuffled
+                , picked = PickedNone
                 }
             , Cmd.none
             )
+
+        ( CardClicked card, Playing playingModel ) ->
+            ( Playing { playingModel | picked = addCard card playingModel.picked }
+            , Cmd.none
+            )
+
+        ( CardClicked _, _ ) ->
+            ( model, Cmd.none )
+
+
+pickedToList : Picked -> List Card
+pickedToList picked =
+    case picked of
+        PickedNone ->
+            []
+
+        PickedOne card1 ->
+            [ card1 ]
+
+        PickedTwo card1 card2 ->
+            [ card1, card2 ]
+
+        Invalid card1 card2 card3 ->
+            [ card1, card2, card3 ]
+
+        Valid (Set card1 card2 card3) ->
+            [ card1, card2, card3 ]
+
+
+addCard : Card -> Picked -> Picked
+addCard card picked =
+    let
+        isMember_ =
+            List.member card (pickedToList picked)
+    in
+    if isMember_ then
+        picked
+
+    else
+        case picked of
+            PickedNone ->
+                PickedOne card
+
+            PickedOne card1 ->
+                PickedTwo card1 card
+
+            PickedTwo card1 card2 ->
+                if isValidSet (Set card1 card2 card) then
+                    Valid (Set card1 card2 card)
+
+                else
+                    Invalid card1 card2 card
+
+            Invalid _ _ _ ->
+                PickedNone
+
+            Valid _ ->
+                PickedNone
+
+
+
+-- toggleMember : a -> List a -> List a
+-- toggleMember x xs =
+--     if List.member x xs then
+--         List.filter ((/=) x) xs
+--     else
+--         x :: xs
+
+
+normalColor =
+    rgb255 255 192 203
+
+
+sadColor =
+    rgb255 100 10 10
+
+
+happyColor =
+    rgb255 50 100 50
 
 
 view : Model -> Html Msg
@@ -170,8 +266,24 @@ view model =
                 Preparing ->
                     text "loading..."
 
-                Playing { deal } ->
-                    viewCards deal
+                Playing { deal, picked } ->
+                    viewCards picked deal
+
+        bg =
+            case model of
+                Playing playingModel ->
+                    case playingModel.picked of
+                        Invalid _ _ _ ->
+                            sadColor
+
+                        Valid _ ->
+                            happyColor
+
+                        _ ->
+                            normalColor
+
+                _ ->
+                    normalColor
     in
     Element.layout
         [ width fill, height fill ]
@@ -181,19 +293,34 @@ view model =
             , Border.solid
             , Border.width 3
             , Border.rounded 3
-            , Border.color <| rgb255 255 192 203
+            , Border.color <| normalColor
             , padding 10
+            , Background.color bg
             ]
             content
         )
 
 
-viewCard : Card -> Element Msg
-viewCard (Card { symbol, color, number, shading }) =
+viewCard : List Card -> Card -> Element Msg
+viewCard pickedCards ((Card { symbol, color, number, shading }) as card) =
+    let
+        isPicked =
+            List.member card pickedCards
+
+        color_ =
+            if isPicked then
+                rgb255 50 150 50
+
+            else
+                normalColor
+    in
     column
         [ Border.width 3
         , padding 10
         , width (Element.fillPortion 1)
+        , Events.onClick (CardClicked card)
+        , Border.color color_
+        , pointer
         ]
         [ text (symbolToString symbol)
         , text (colorToString color)
@@ -202,18 +329,18 @@ viewCard (Card { symbol, color, number, shading }) =
         ]
 
 
-viewCards : List Card -> Element Msg
-viewCards cards =
+viewCards : Picked -> List Card -> Element Msg
+viewCards pickedCards cards =
     column []
         (List.Extra.groupsOf 4 cards
-            |> List.map viewCardsRow
+            |> List.map (viewCardsRow (pickedToList pickedCards))
         )
 
 
-viewCardsRow : List Card -> Element Msg
-viewCardsRow cards =
+viewCardsRow : List Card -> List Card -> Element Msg
+viewCardsRow pickedCards cards =
     Element.row [ width fill ]
-        (List.map viewCard cards)
+        (List.map (viewCard pickedCards) cards)
 
 
 symbolToString : Symbol -> String
