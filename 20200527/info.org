@@ -1,0 +1,3 @@
+- 5 attendees
+- bruno gave a talk about lamdera; some live coding; vscode liveshare awesomeness
+- next meetup: will be on the 3rd of june 2020
