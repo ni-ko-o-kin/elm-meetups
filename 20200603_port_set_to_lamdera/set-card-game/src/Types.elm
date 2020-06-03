@@ -16,6 +16,8 @@ type alias BackendModel =
 type FrontendMsg
     = DeckShuffled (List Card)
     | CardClicked Card
+    | PlayerNameChanged String
+    | JoinClicked
     | FNoop
 
 
@@ -69,8 +71,13 @@ type Number
     | Three
 
 
+type alias PlayerName =
+    String
+
+
 type FrontendModel
-    = Preparing
+    = Lobby PlayerName
+    | Preparing PlayerName
     | Playing PlayingModel
 
 
@@ -86,7 +93,18 @@ type alias PlayingModel =
     { remainingDeck : List Card
     , deal : List Card
     , picked : Picked
+    , players : List Player
     }
+
+
+type alias Player =
+    { name : String
+    , score : Score
+    }
+
+
+type alias Score =
+    Int
 
 
 

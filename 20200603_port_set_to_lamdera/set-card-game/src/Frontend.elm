@@ -1,10 +1,11 @@
 module Frontend exposing (..)
 
 import Browser
-import Element exposing (Element, centerX, centerY, column, el, fill, height, padding, pointer, rgb255, text, width)
+import Element exposing (Element, centerX, centerY, column, el, fill, height, padding, pointer, rgb255, row, text, width)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Events as Events
+import Element.Input as Input
 import Html exposing (Html)
 import Lamdera
 import List.Extra exposing (cartesianProduct)
@@ -104,19 +105,27 @@ type alias Model =
 
 init : ( Model, Cmd Msg )
 init =
-    ( Preparing
-    , Random.generate DeckShuffled <| shuffle deck
+    ( Lobby ""
+      -- , Random.generate DeckShuffled <| shuffle deck -- TODO move to backend
+    , Cmd.none
     )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case ( msg, model ) of
+        ( PlayerNameChanged updatedPlayerName, Lobby playerName ) ->
+            ( Lobby updatedPlayerName, Cmd.none )
+
+        ( JoinClicked, Lobby playerName ) ->
+            ( Preparing playerName, Lamdera.sendToBackend (PlayerJoined playerName) )
+
         ( DeckShuffled deckShuffled, _ ) ->
             ( Playing
                 { remainingDeck = List.drop 12 deckShuffled
                 , deal = List.take 12 deckShuffled
                 , picked = PickedNone
+                , players = []
                 }
             , Cmd.none
             )
@@ -129,7 +138,7 @@ update msg model =
         ( CardClicked _, _ ) ->
             ( model, Cmd.none )
 
-        ( FNoop, _ ) ->
+        _ ->
             ( model, Cmd.none )
 
 
@@ -211,12 +220,36 @@ view model =
     }
 
 
+lobbyView : String -> Element Msg
+lobbyView playerName =
+    row []
+        [ Input.text []
+            { onChange = PlayerNameChanged
+            , text = playerName
+            , placeholder = Nothing
+            , label = Input.labelAbove [] (text "Name")
+            }
+        , Input.button []
+            { onPress =
+                if playerName == "" then
+                    Nothing
+
+                else
+                    Just JoinClicked
+            , label = text "Join"
+            }
+        ]
+
+
 bodyView : Model -> Html Msg
 bodyView model =
     let
         content =
             case model of
-                Preparing ->
+                Lobby playerName ->
+                    lobbyView playerName
+
+                Preparing playerName ->
                     text "loading..."
 
                 Playing { deal, picked } ->
