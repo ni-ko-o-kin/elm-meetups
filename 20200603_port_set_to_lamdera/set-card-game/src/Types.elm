@@ -1,21 +1,28 @@
 module Types exposing (..)
 
+import Backend
+import Frontend
+
+
 type alias FrontendModel =
-  { message : String
-  }
+    Frontend.Model
+
 
 type alias BackendModel =
-  { message : String
-  }
+    Backend.Model
 
-type FrontendMsg
-    = NoOpFrontendMsg
+
+type alias FrontendMsg =
+    Frontend.Msg
+
 
 type ToBackend
     = NoOpToBackend
 
-type BackendMsg
-    = NoOpBackendMsg
+
+type alias BackendMsg =
+    Backend.Msg
+
 
 type ToFrontend
     = NoOpToFrontend
