@@ -11,13 +11,14 @@ import List.Extra exposing (cartesianProduct)
 import Random exposing (generate)
 import Random.List exposing (shuffle)
 import Set
+import Types exposing (..)
 
 
 app =
     Lamdera.frontend
         { init = \_ _ -> init
-        , onUrlRequest = \_ -> Noop --UrlClicked
-        , onUrlChange = \_ -> Noop --UrlChanged
+        , onUrlRequest = \_ -> FNoop --UrlClicked
+        , onUrlChange = \_ -> FNoop --UrlChanged
         , update = update
         , updateFromBackend = updateFromBackend
         , subscriptions = \_ -> Sub.none
@@ -30,82 +31,21 @@ updateFromBackend fromBackend model =
     ( model, Cmd.none )
 
 
-type Model
-    = Preparing
-    | Playing PlayingModel
-
-
-type Picked
-    = PickedNone
-    | PickedOne Card
-    | PickedTwo Card Card
-    | Valid Set
-    | Invalid Card Card Card
-
-
-type alias PlayingModel =
-    { remainingDeck : List Card
-    , deal : List Card
-    , picked : Picked
-    }
-
-
-
--- Features: Symbol, Shading, Color and Number
--- all the same or all different on a feature level
-
-
-type Symbol
-    = Oval
-    | Diamond
-    | Squiggle
-
-
 symbols =
     [ Oval, Diamond, Squiggle ]
-
-
-type Shading
-    = Solid
-    | Striped
-    | Empty
 
 
 shadings =
     [ Solid, Striped, Empty ]
 
 
-type Color
-    = Red
-    | Green
-    | Purple
-
-
 colors =
     [ Red, Green, Purple ]
-
-
-type Number
-    = One
-    | Two
-    | Three
 
 
 numbers : List Number
 numbers =
     [ One, Two, Three ]
-
-
-type Card
-    = Card CardData
-
-
-type alias CardData =
-    { symbol : Symbol
-    , color : Color
-    , number : Number
-    , shading : Shading
-    }
 
 
 initCard : Symbol -> Color -> Number -> Shading -> Card
@@ -154,10 +94,12 @@ symbolsAllSame =
     allSame .symbol
 
 
-type Msg
-    = DeckShuffled (List Card)
-    | CardClicked Card
-    | Noop
+type alias Msg =
+    FrontendMsg
+
+
+type alias Model =
+    FrontendModel
 
 
 init : ( Model, Cmd Msg )
@@ -187,7 +129,7 @@ update msg model =
         ( CardClicked _, _ ) ->
             ( model, Cmd.none )
 
-        ( Noop, _ ) ->
+        ( FNoop, _ ) ->
             ( model, Cmd.none )
 
 
@@ -404,7 +346,3 @@ colorToString color =
 
         Purple ->
             "Purple"
-
-
-type Set
-    = Set Card Card Card
