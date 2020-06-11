@@ -34,9 +34,23 @@ update msg model =
 
 updateFromFrontend : Lamdera.SessionId -> Lamdera.ClientId -> ToBackend -> Model -> ( Model, Cmd Msg )
 updateFromFrontend session_id clientId toBackendMsg model =
-    case toBackendMsg of
+    case Debug.log "updateFromFrontend" toBackendMsg of
         PlayerJoined name ->
-            ( { model | players = Dict.insert clientId name model.players }, Cmd.none )
+            let
+                updatedModel =
+                    { model | players = Dict.insert clientId name model.players }
+            in
+            ( updatedModel, broadcast (Dict.keys updatedModel.players) (BackendUpdated updatedModel) )
+
+        StartGameRequested ->
+            ( model, Cmd.none )
+
+
+broadcast : List Lamdera.ClientId -> ToFrontend -> Cmd Msg
+broadcast clientIds msg =
+    clientIds
+        |> List.map (\clientId -> Lamdera.sendToFrontend clientId msg)
+        |> Cmd.batch
 
 
 

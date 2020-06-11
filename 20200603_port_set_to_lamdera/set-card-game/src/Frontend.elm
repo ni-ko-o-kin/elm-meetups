@@ -1,6 +1,7 @@
 module Frontend exposing (..)
 
 import Browser
+import Dict exposing (Dict)
 import Element exposing (Element, centerX, centerY, column, el, fill, height, padding, pointer, rgb255, row, text, width)
 import Element.Background as Background
 import Element.Border as Border
@@ -27,9 +28,14 @@ app =
         }
 
 
-updateFromBackend : toFrontend -> Model -> ( Model, Cmd Msg )
+updateFromBackend : ToFrontend -> Model -> ( Model, Cmd Msg )
 updateFromBackend fromBackend model =
-    ( model, Cmd.none )
+    case Debug.log "updateFromBackend" fromBackend of
+        BackendUpdated backendModel ->
+            ( { model | backendModel = Just backendModel }, Cmd.none )
+
+        NoOpToFrontend ->
+            ( model, Cmd.none )
 
 
 symbols =
@@ -105,7 +111,7 @@ type alias Model =
 
 init : ( Model, Cmd Msg )
 init =
-    ( Lobby ""
+    ( { backendModel = Nothing, clientState = Lobby "" }
       -- , Random.generate DeckShuffled <| shuffle deck -- TODO move to backend
     , Cmd.none
     )
@@ -113,31 +119,31 @@ init =
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case ( msg, model ) of
+    case ( msg, model.clientState ) of
         ( PlayerNameChanged updatedPlayerName, Lobby playerName ) ->
-            ( Lobby updatedPlayerName, Cmd.none )
+            ( { model | clientState = Lobby updatedPlayerName }, Cmd.none )
 
         ( JoinClicked, Lobby playerName ) ->
-            ( Preparing playerName, Lamdera.sendToBackend (PlayerJoined playerName) )
+            ( { model | clientState = WaitingRoom }, Lamdera.sendToBackend (PlayerJoined playerName) )
 
-        ( DeckShuffled deckShuffled, _ ) ->
-            ( Playing
-                { remainingDeck = List.drop 12 deckShuffled
-                , deal = List.take 12 deckShuffled
-                , picked = PickedNone
-                , players = []
-                }
-            , Cmd.none
-            )
+        ( StartGameClicked, _ ) ->
+            ( model, Lamdera.sendToBackend StartGameRequested )
 
-        ( CardClicked card, Playing playingModel ) ->
-            ( Playing { playingModel | picked = addCard card playingModel.picked }
-            , Cmd.none
-            )
-
-        ( CardClicked _, _ ) ->
-            ( model, Cmd.none )
-
+        -- ( DeckShuffled deckShuffled, _ ) ->
+        --     ( Playing
+        --         { remainingDeck = List.drop 12 deckShuffled
+        --         , deal = List.take 12 deckShuffled
+        --         , picked = PickedNone
+        --         , players = []
+        --         }
+        --     , Cmd.none
+        --     )
+        -- ( CardClicked card, Playing playingModel ) ->
+        --     ( Playing { playingModel | picked = addCard card playingModel.picked }
+        --     , Cmd.none
+        --     )
+        -- ( CardClicked _, _ ) ->
+        --     ( model, Cmd.none )
         _ ->
             ( model, Cmd.none )
 
@@ -245,43 +251,57 @@ bodyView : Model -> Html Msg
 bodyView model =
     let
         content =
-            case model of
+            case model.clientState of
                 Lobby playerName ->
                     lobbyView playerName
 
-                Preparing playerName ->
-                    text "loading..."
+                WaitingRoom ->
+                    case model.backendModel of
+                        Nothing ->
+                            text "loading..."
 
-                Playing { deal, picked } ->
-                    viewCards picked deal
+                        Just backendModel ->
+                            let
+                                playersList =
+                                    el
+                                        [ Border.solid
+                                        , Border.width 3
+                                        , Border.rounded 3
+                                        , Border.color <| normalColor
+                                        , padding 10
+                                        , Background.color normalColor
+                                        ]
+                                        (backendModel.players
+                                            |> Dict.values
+                                            |> List.map (\playerName -> el [] (text playerName))
+                                            |> column []
+                                        )
+                            in
+                            column []
+                                [ playersList
+                                , Input.button [] { onPress = Just StartGameClicked, label = text "Start Game" }
+                                ]
 
-        bg =
-            case model of
-                Playing playingModel ->
-                    case playingModel.picked of
-                        Invalid _ _ _ ->
-                            sadColor
-
-                        Valid _ ->
-                            happyColor
-
-                        _ ->
-                            normalColor
-
-                _ ->
-                    normalColor
+        -- bg =
+        --     case model of
+        --         Playing playingModel ->
+        --             case playingModel.picked of
+        --                 Invalid _ _ _ ->
+        --                     sadColor
+        --                 Valid _ ->
+        --                     happyColor
+        --                 _ ->
+        --                     normalColor
+        --         _ ->
+        --             normalColor
     in
     Element.layout
-        [ width fill, height fill ]
+        [ width fill
+        , height fill
+        ]
         (el
             [ centerX
             , centerY
-            , Border.solid
-            , Border.width 3
-            , Border.rounded 3
-            , Border.color <| normalColor
-            , padding 10
-            , Background.color bg
             ]
             content
         )

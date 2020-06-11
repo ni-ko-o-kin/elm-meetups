@@ -18,11 +18,13 @@ type FrontendMsg
     | CardClicked Card
     | PlayerNameChanged String
     | JoinClicked
+    | StartGameClicked
     | FNoop
 
 
 type ToBackend
     = PlayerJoined String
+    | StartGameRequested
 
 
 type Set
@@ -34,7 +36,8 @@ type BackendMsg
 
 
 type ToFrontend
-    = NoOpToFrontend
+    = BackendUpdated BackendModel
+    | NoOpToFrontend
 
 
 
@@ -75,10 +78,15 @@ type alias PlayerName =
     String
 
 
-type FrontendModel
+type alias FrontendModel =
+    { backendModel : Maybe BackendModel
+    , clientState : ClientState
+    }
+
+
+type ClientState
     = Lobby PlayerName
-    | Preparing PlayerName
-    | Playing PlayingModel
+    | WaitingRoom
 
 
 type Picked
